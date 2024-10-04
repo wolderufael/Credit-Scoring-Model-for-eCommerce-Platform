@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -13,21 +14,30 @@ class EDA:
         print(f"Data types of each column:\n{data_types}")
         
     def summarize_dataset(self,df):
-        # Summary statistics for 'Amount' features
-        summary_stats = {
-            'Mean': df['Amount'].mean(),
-            'Median': df['Amount'].median(),
-            'Mode': df['Amount'].mode().iloc[0],  # Taking the first mode in case of multiple modes
-            'Standard Deviation': df['Amount'].std(),
-            'Variance': df['Amount'].var(),
-            'Range': df['Amount'].max() - df['Amount'].min(),
-            'IQR': df['Amount'].quantile(0.75) - df['Amount'].quantile(0.25),
-            'Skewness': df['Amount'].skew(),
-            'Kurtosis': df['Amount'].kurtosis()
-        }
+        # Select numerical columns only
+        numerical_columns=['Amount','Value']
         
-        # Convert summary stats to DataFrame with an index
-        summary_df = pd.DataFrame([summary_stats], index=['Summary of Amount'])
+        # Initialize a list to hold summary statistics for each column
+        summary_list = []
+    
+        for col in numerical_columns:
+            summary_stats = {
+                'Mean': df[col].mean(),
+                'Median': df[col].median(),
+                'Mode': df[col].mode().iloc[0],  # Taking the first mode in case of multiple modes
+                'Standard Deviation': df[col].std(),
+                'Variance': df[col].var(),
+                'Range': df[col].max() - df[col].min(),
+                'IQR': df[col].quantile(0.75) - df[col].quantile(0.25),
+                'Skewness': df[col].skew(),
+                'Kurtosis': df[col].kurtosis()
+            }
+            
+            # Append the summary statistics for the current column to the list
+            summary_list.append(summary_stats)
+        
+        # Convert summary stats list to DataFrame with appropriate index
+        summary_df = pd.DataFrame(summary_list, index=numerical_columns)
         
         return summary_df
     
@@ -35,24 +45,58 @@ class EDA:
         # Select numerical columns only
         numerical_columns=['Amount','Value']
         
-        # Set style for seaborn plots
-        sns.set_theme(style="whitegrid")
-        
         # Create histograms and boxplots for each numerical feature
         for col in numerical_columns:
-            plt.figure(figsize=(12, 6))
-            
-            # Plot Histogram 
+            plt.figure(figsize=(10, 7))
             plt.subplot(1, 2, 1)
-            sns.histplot(df[col], kde=True, bins=30, color='blue')
-            plt.title(f'Distribution of {col}')
-            plt.xlabel(col)
+            if col not in df.columns:
+                raise ValueError(f"Column '{col}' not found in DataFrame")
+
+            # Drop NaN values for the selected column
+            data = df[col].dropna()
+
+            # Create a histogram to get frequency and bin edges
+            frequency, bin_edges = np.histogram(data, bins=10)
+
+            # Get the bin centers
+            bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+
+            # Plot the line graph for frequency distribution
             
-            # Plot Boxplot for outliers
+            plt.plot(bin_centers, frequency, color='green', marker='o', linestyle='-', linewidth=2, markersize=5)
+
+            # Adding titles and labels
+            plt.title(f'Frequency Polygon (Line Graph) of {col} Distribution', fontsize=16)
+            plt.xlabel(col, fontsize=14)
+            plt.ylabel('Frequency', fontsize=14)
+
+            # Set x-axis limits to the minimum and maximum values of the column
+            plt.xlim(data.min(), data.max())
+
+            # Display the grid
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+            
+            # Create the box plot
             plt.subplot(1, 2, 2)
-            sns.boxplot(x=df[col], color='orange')
-            plt.title(f'Boxplot of {col}')
+            box = plt.boxplot(df[col], patch_artist=True, boxprops=dict(facecolor='lightgreen'), 
+                            medianprops=dict(color='brown'), 
+                            whiskerprops=dict(color='black', linewidth=1.5), 
+                            capprops=dict(color='black', linewidth=1.5))
             
+            # Set title and labels
+            plt.title(f'Boxplot of {col} (Outlier Detection)', fontsize=16)
+            plt.xlabel(col, fontsize=14)
+            
+            # Set y-axis limits
+            if(col=='Value'):
+                plt.ylim(df[col].min(), df[col].max() * 0.002)  # Adjust as necessary to see the box clearly
+            elif(col=='Amount'):
+                plt.ylim(df[col].min()* 0.01,  df[col].max()* 0.002)  # Adjust as necessary to see the box clearly
+            
+            # Show the plot
+            plt.grid()
             plt.tight_layout()
             plt.show()
 
