@@ -9,6 +9,9 @@ import sidetable
 import seaborn as sns
 import scorecardpy as sc
 from monotonic_binning.monotonic_woe_binning import Binning
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score, classification_report, roc_curve
 
 
 class Estimator:
@@ -143,3 +146,32 @@ class Estimator:
         filtered=sc.var_filter(train_final, y = 'vd')
         
         return filtered
+    
+    def predict_risk_logistic_regressor(self,train_final,test_final):
+        y_train = train_final.loc[:,'vd']
+        X_train = train_final.loc[:,train_final.columns != 'vd']
+        y_test = test_final.loc[:,'vd']
+        X_test = test_final.loc[:,train_final.columns != 'vd']
+        
+        lr = LogisticRegression(penalty='l1', C=0.9, solver='liblinear')
+        lr_model=lr.fit(X_train, y_train)
+        
+        # # predicted proability
+        train_pred = lr.predict_proba(X_train)[:,1]
+        test_pred = lr.predict_proba(X_test)[:,1]
+        
+        return lr,lr_model,train_pred,test_pred,y_train,y_test,X_test
+    
+    def performance_ks_roc(self,train_pred,test_pred,y_train,y_test):
+        train_perf = sc.perf_eva(y_train, train_pred, title = "train")
+        test_perf = sc.perf_eva(y_test, test_pred, title = "test")
+        
+        return train_perf,test_perf
+    
+    def evaluation(self,lr,X_test,y_test):
+        predictions = lr.predict(X_test)
+        
+        print('Accuracy')
+        print(accuracy_score(y_test, predictions))
+        print('AUC Score')
+        print(roc_auc_score(y_test, predictions))
