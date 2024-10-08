@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-import pandas as pd
+import logging
+import pickle
+from datetime import datetime
+import os
 import sidetable
 # %matplotlib inline
 import seaborn as sns
@@ -141,7 +143,25 @@ class Estimator:
         iv=sc.iv(train_final, y = 'vd')
         
         return iv
+
+    def filter_columns_by_info_value(self,df,info_values_df, threshold=0.02):
+        # Get the variables (columns) that meet the info_value threshold
+        columns_to_keep = info_values_df[info_values_df['info_value'] >= threshold]['variable'].tolist()
+    
+        # Ensure 'vd' is included in the final DataFrame
+        if 'vd' in df.columns:
+            columns_to_keep.append('vd')
         
+        # Filter the train_final DataFrame to only include these columns
+        filtered_df = df[columns_to_keep]
+        
+        # Move 'vd' to the last column if it exists
+        if 'vd' in filtered_df.columns:
+            vd_column = filtered_df.pop('vd')  # Remove 'vd' column
+            filtered_df['vd'] = vd_column      # Add 'vd' back as the last column
+    
+        return filtered_df
+    
     def filter_variables(self,train_final):
         filtered=sc.var_filter(train_final, y = 'vd')
         
@@ -155,6 +175,9 @@ class Estimator:
         
         lr = LogisticRegression(penalty='l1', C=0.9, solver='liblinear')
         lr_model=lr.fit(X_train, y_train)
+        
+        # Print the coefficients
+        print(lr.coef_)
         
         # # predicted proability
         train_pred = lr.predict_proba(X_train)[:,1]
@@ -175,3 +198,34 @@ class Estimator:
         print(accuracy_score(y_test, predictions))
         print('AUC Score')
         print(roc_auc_score(y_test, predictions))
+        
+        print(classification_report(y_test,predictions))
+        
+        return predictions
+    
+    def confusion_matrix(self,y_test,predictions):
+        conf_log2 = confusion_matrix(y_test,predictions)
+        sns.heatmap(data=conf_log2, annot=True, linewidth=0.7, linecolor='k', fmt='.0f', cmap='magma')
+        plt.xlabel('Predicted Values')
+        plt.ylabel('True Values')
+        plt.title('Confusion Matrix - Logistic Regression');
+        
+    def save_model_with_timestamp(self,model,name, folder_path='models/'):
+        logging.info('Serializes and saves a trained model with a timestamp.')
+        
+        # Create the folder if it doesn't exist
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        
+        # Generate timestamp in format dd-mm-yyyy-HH-MM-SS-00
+        timestamp = datetime.now().strftime("%d-%m-%Y-%H-%M-%S-00")
+        
+        # Create a filename with the timestamp
+        filename = f'{folder_path}{name}-{timestamp}.pkl'
+        
+        # Save the model using pickle
+        with open(filename, 'wb') as file:
+            pickle.dump(model, file)
+        
+        print(f"Model saved as {filename}")
+        return filename
