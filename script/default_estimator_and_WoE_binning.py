@@ -57,12 +57,13 @@ class Estimator:
                             rfms['Stability'].rank(ascending=False))
         
         # Classify into Good (low risk) and Bad (high risk)
-        rfms['RiskLabel'] = np.where(rfms['RiskScore'] > rfms['RiskScore'].median(), 'Bad', 'Good')
+        rfms['RiskLabel'] = np.where(rfms['RiskScore'] > rfms['RiskScore'].median(), 1, 0)
 
         return rfms
 
     def merge_dataframes(self,df1, df2):
         # Merge the two DataFrames on 'CustomerId'
         merged_df = pd.merge(df1, df2, on='CustomerId', how='inner')  
+        merged_df.drop(columns='CustomerId',inplace=True)
         
         return merged_df
