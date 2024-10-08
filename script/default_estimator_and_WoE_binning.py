@@ -60,3 +60,9 @@ class Estimator:
         rfms['RiskLabel'] = np.where(rfms['RiskScore'] > rfms['RiskScore'].median(), 'Bad', 'Good')
 
         return rfms
+
+    def merge_dataframes(self,df1, df2):
+        # Merge the two DataFrames on 'CustomerId'
+        merged_df = pd.merge(df1, df2, on='CustomerId', how='inner')  
+        
+        return merged_df

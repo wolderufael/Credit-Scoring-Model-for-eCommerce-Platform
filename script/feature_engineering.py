@@ -41,6 +41,12 @@ class FeatureEngineering:
         # Apply One-Hot Encoding to the specified categorical columns
         df_encoded = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
         
+        # Find the newly created one-hot encoded columns
+        new_columns = [col for col in df_encoded.columns if any(cat_col in col for cat_col in categorical_columns)]
+        
+        # Convert only the one-hot encoded columns to 0 and 1
+        df_encoded[new_columns] = df_encoded[new_columns].astype(int)
+        
         return df_encoded
     
     def normalize_features(self,df):
@@ -49,3 +55,13 @@ class FeatureEngineering:
         df[numerical_columns] = scaler.fit_transform(df[numerical_columns])
         
         return df
+    
+    def save_to_csv(self,df,file_path):
+        # Drop the specified columns
+        columns_to_drop = ['TransactionId', 'BatchId', 'AccountId', 'SubscriptionId', 'CurrencyCode', 'CountryCode', 'Value']
+        df = df.drop(columns=columns_to_drop)
+        
+        # Save the resulting DataFrame to a CSV file
+        df.to_csv(file_path, index=False)
+        
+        print('Data set saved succusfully!')
