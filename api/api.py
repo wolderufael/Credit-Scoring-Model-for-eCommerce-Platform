@@ -30,13 +30,9 @@ from script.default_estimator_and_WoE_binning import Estimator
 lr_processor=Estimator()
 
 def preprocess_input_rf(df):
-    # Ensure the index is set as a column named 'Unnamed: 0'
-    # df.reset_index(inplace=True)
-    # df.rename(columns={'index': 'Unnamed: 0'}, inplace=True)
     rfms_scores=lr_processor.calculate_rfms(df)
     rfms_labeled = lr_processor.assign_good_bad_labels(rfms_scores)
     merged_data=lr_processor.merge_dataframes(df,rfms_labeled)
-    # train, test=lr_processor.split_data(merged_data)
     y_var,breaks=lr_processor.woe_num(merged_data,'RiskLabel')
     break_list=lr_processor.bin_catagorical_features(merged_data)
     breaks.update(break_list)
@@ -46,13 +42,10 @@ def preprocess_input_rf(df):
     data_final = data_final.drop(columns = 'RiskLabel_y').rename(columns={'RiskLabel_x':'vd'})
     categorical_columns = ['ProviderId', 'ProductId', 'ProductCategory', 'ChannelId', 'PricingStrategy']
     data_final = data_final.drop(columns = categorical_columns)
-    # train_final,test_final=lr_processor.converting_into_woe_values(train,test,bins_adj)
     info_values_df=lr_processor.calculate_information_value(data_final)
     data_final=lr_processor.filter_columns_by_info_value(data_final,info_values_df, threshold=0.02)
-    # test_final=lr_processor.filter_columns_by_info_value(test_final,info_values_df, threshold=0.02)
     X_data=data_final.loc[:,data_final.columns != 'vd']
-    # lr,lr_model,train_pred,test_pred,y_train,y_test,X_test=lr_processor.predict_risk_logistic_regressor(train_final,test_final)
-
+    
     return X_data
 
     
