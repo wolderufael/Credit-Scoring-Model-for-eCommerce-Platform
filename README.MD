@@ -12,6 +12,7 @@ This repository contains a credit scoring model designed for an eCommerce platfo
 │   └── settings.json<br>
 ├── api<br>
 │   └── api.py<br>
+│   └── client<br>
 ├── data<br>
 │   ├── data.csv <br>
 ├── notebook<br>
