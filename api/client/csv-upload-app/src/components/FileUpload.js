@@ -29,7 +29,8 @@ const UploadForm = () => {
     try {
       const response = await axios.post(
         // "http://localhost:5000/predict_logistic_regression",
-        "https://credit-scoring-model-for-ecommerce.onrender.com/predict_logistic_regression",
+        // "https://credit-scoring-model-for-ecommerce.onrender.com/predict_logistic_regression",
+        "https://credit-scoring-model-for-ecommerce-bbbo.onrender.com/predict_logistic_regression",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
