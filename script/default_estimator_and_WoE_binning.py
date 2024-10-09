@@ -12,6 +12,7 @@ import seaborn as sns
 import scorecardpy as sc
 from monotonic_binning.monotonic_woe_binning import Binning
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import confusion_matrix, accuracy_score, roc_auc_score, classification_report, roc_curve
 
@@ -113,7 +114,12 @@ class Estimator:
     
     def bin_catagorical_features(self,train):
         categorical_columns = ['ProviderId', 'ProductId', 'ProductCategory', 'ChannelId', 'PricingStrategy']
-        bins = sc.woebin(train, y = 'RiskLabel', x = categorical_columns, save_breaks_list = 'cat_breaks')
+        bins = sc.woebin(train, y = 'RiskLabel', x = categorical_columns)
+                        #  , save_breaks_list = 'cat_breaks')
+        # Extract the breaks from the resulting 'bins' object
+        breaks_list = {col: bins[col]['breaks'].tolist() for col in bins.keys()}
+        
+        return breaks_list
         
     def plot_woe_iv(self,df,breaks):
         bins_adj = sc.woebin(df, 'RiskLabel', breaks_list= breaks, positive = 'bad|0')
@@ -146,7 +152,8 @@ class Estimator:
 
     def filter_columns_by_info_value(self,df,info_values_df, threshold=0.02):
         # Get the variables (columns) that meet the info_value threshold
-        columns_to_keep = info_values_df[info_values_df['info_value'] >= threshold]['variable'].tolist()
+        # columns_to_keep = info_values_df[info_values_df['info_value'] >= threshold]['variable'].tolist()
+        columns_to_keep=['Stability','Monetary','RiskScore','Frequency','Recency','Recency_woe','Amount','Frequency_woe','ProviderId_woe','ProductId_woe','Amount_woe','PricingStrategy_woe']
     
         # Ensure 'vd' is included in the final DataFrame
         if 'vd' in df.columns:
@@ -184,6 +191,24 @@ class Estimator:
         test_pred = lr.predict_proba(X_test)[:,1]
         
         return lr,lr_model,train_pred,test_pred,y_train,y_test,X_test
+    
+    def predict_risk_random_forrest(self,train_final,test_final):
+        y_train = train_final.loc[:,'vd']
+        X_train = train_final.loc[:,train_final.columns != 'vd']
+        y_test = test_final.loc[:,'vd']
+        X_test = test_final.loc[:,train_final.columns != 'vd']
+        
+        rf = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
+        rf_model = rf.fit(X_train, y_train)
+        
+        # Print feature importances
+        print("Feature Importances:", rf.feature_importances_)
+        
+        # # predicted proability
+        train_pred = rf.predict_proba(X_train)[:,1]
+        test_pred = rf.predict_proba(X_test)[:,1]
+        
+        return rf,rf_model,train_pred,test_pred,y_train,y_test,X_test
     
     def performance_ks_roc(self,train_pred,test_pred,y_train,y_test):
         train_perf = sc.perf_eva(y_train, train_pred, title = "train")
