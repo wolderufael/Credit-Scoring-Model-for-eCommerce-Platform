@@ -52,6 +52,9 @@ The following is an overview of the file structure for the project:
 ### 5. `.gitignore`
 - Specifies which files and directories Git should ignore.
 
+## Deployment 
+[Here](https://credit-score-prediction.netlify.app/) is the link for deployment
+
 ## Setup
 
 1. **Clone the repository**:
