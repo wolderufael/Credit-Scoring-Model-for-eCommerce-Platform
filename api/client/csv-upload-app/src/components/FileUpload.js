@@ -1,78 +1,3 @@
-// // src/components/FileUpload.js
-// import React, { useState } from "react";
-// import axios from "axios";
-
-// const FileUpload = () => {
-//   const [selectedFile, setSelectedFile] = useState(null);
-//   const [jsonResponse, setJsonResponse] = useState(null);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-
-//   const handleFileChange = (event) => {
-//     setSelectedFile(event.target.files[0]);
-//   };
-
-//   const handleSubmit = async (event) => {
-//     event.preventDefault();
-//     if (!selectedFile) {
-//       setError("Please select a CSV file.");
-//       return;
-//     }
-//     setLoading(true);
-//     setError("");
-//     setJsonResponse(null);
-
-//     const formData = new FormData();
-//     formData.append("file", selectedFile);
-
-//     try {
-//       const response = await axios.post(
-//         "http://localhost:5000/predict_logistic_regression",
-//         formData,
-//         {
-//           headers: {
-//             "Content-Type": "multipart/form-data",
-//           },
-//         }
-//       );
-//       setJsonResponse(response.data);
-//     } catch (err) {
-//       setError("Failed to upload file. " + err.message);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h2>Upload CSV File</h2>
-//       <form onSubmit={handleSubmit}>
-//         <input type="file" accept=".csv" onChange={handleFileChange} />
-//         <button type="submit" disabled={loading}>
-//           {loading ? "Uploading..." : "Upload and Predict"}
-//         </button>
-//       </form>
-//       {error && <p style={{ color: "red" }}>{error}</p>}
-//       {jsonResponse && (
-//         <div>
-//           <h3>Prediction Result</h3>
-//           <pre>{JSON.stringify(jsonResponse, null, 2)}</pre>
-//           <a
-//             href={`data:text/json;charset=utf-8,${encodeURIComponent(
-//               JSON.stringify(jsonResponse)
-//             )}`}
-//             download="predictions.json"
-//           >
-//             Download JSON
-//           </a>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default FileUpload;
-
 import React, { useState } from "react";
 import axios from "axios";
 import "./FileUpload.css"; // Import CSS file
@@ -103,7 +28,8 @@ const UploadForm = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/predict_logistic_regression",
+        // "http://localhost:5000/predict_logistic_regression",
+        "https://credit-scoring-model-for-ecommerce.onrender.com/predict_logistic_regression",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
