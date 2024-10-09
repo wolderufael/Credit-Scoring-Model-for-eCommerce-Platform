@@ -20,7 +20,8 @@ sys.path.append(os.path.abspath('../models'))
 app = Flask(__name__)
 
 # Load the pre-trained logistic re model model using pickle
-with open('../models/logistic_regression_model-09-10-2024-00-45-34-00.pkl', 'rb') as f:
+# with open('../models/logistic_regression_model-09-10-2024-00-45-34-00.pkl', 'rb') as f:
+with open('../models/random_forrest_model-09-10-2024-05-40-21-00.pkl', 'rb') as f:
     lr_model = pickle.load(f)
     
 
@@ -29,8 +30,8 @@ lr_processor=Estimator()
 
 def preprocess_input_rf(df):
     # Ensure the index is set as a column named 'Unnamed: 0'
-    df.reset_index(inplace=True)
-    df.rename(columns={'index': 'Unnamed: 0'}, inplace=True)
+    # df.reset_index(inplace=True)
+    # df.rename(columns={'index': 'Unnamed: 0'}, inplace=True)
     rfms_scores=lr_processor.calculate_rfms(df)
     rfms_labeled = lr_processor.assign_good_bad_labels(rfms_scores)
     merged_data=lr_processor.merge_dataframes(df,rfms_labeled)

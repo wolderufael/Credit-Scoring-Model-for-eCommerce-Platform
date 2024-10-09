@@ -193,22 +193,44 @@ class Estimator:
         return lr,lr_model,train_pred,test_pred,y_train,y_test,X_test
     
     def predict_risk_random_forrest(self,train_final,test_final):
+        from sklearn.model_selection import GridSearchCV
+        
         y_train = train_final.loc[:,'vd']
         X_train = train_final.loc[:,train_final.columns != 'vd']
         y_test = test_final.loc[:,'vd']
         X_test = test_final.loc[:,train_final.columns != 'vd']
         
-        rf = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
-        rf_model = rf.fit(X_train, y_train)
+        rf = RandomForestClassifier(n_estimators=200, max_depth=5, min_samples_leaf=5, max_features='sqrt', random_state=42)
+
+        # rf_model = rf.fit(X_train, y_train)
+
+        param_grid = {
+            'max_depth': [3, 5, 7],
+            'min_samples_split': [5, 10, 20],
+            'min_samples_leaf': [1, 2, 5],
+            'max_features': ['sqrt', 'log2']
+        }
+
+        grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1)
+        grid_search.fit(X_train, y_train)
         
-        # Print feature importances
-        print("Feature Importances:", rf.feature_importances_)
+        # Use the best model found by GridSearchCV
+        best_rf_model = grid_search.best_estimator_
+
+        # Print feature importances from the best model
+        print("Feature Importances:", best_rf_model.feature_importances_)
+
+        # Predicted probabilities using the best model
+        train_pred = best_rf_model.predict_proba(X_train)[:, 1]
+        test_pred = best_rf_model.predict_proba(X_test)[:, 1]
+        # # Print feature importances
+        # print("Feature Importances:", rf.feature_importances_)
         
-        # # predicted proability
-        train_pred = rf.predict_proba(X_train)[:,1]
-        test_pred = rf.predict_proba(X_test)[:,1]
+        # # # predicted proability
+        # train_pred = rf.predict_proba(X_train)[:,1]
+        # test_pred = rf.predict_proba(X_test)[:,1]
         
-        return rf,rf_model,train_pred,test_pred,y_train,y_test,X_test
+        return rf,best_rf_model,train_pred,test_pred,y_train,y_test,X_test
     
     def performance_ks_roc(self,train_pred,test_pred,y_train,y_test):
         train_perf = sc.perf_eva(y_train, train_pred, title = "train")

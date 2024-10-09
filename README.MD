@@ -10,13 +10,21 @@ This repository contains a credit scoring model designed for an eCommerce platfo
 ├── .venv <br>
 ├── .vscode<br>
 │   └── settings.json<br>
+├── api<br>
+│   └── api.py<br>
 ├── data<br>
 │   ├── data.csv <br>
 ├── notebook<br>
+│   ├── default_estimator.ipynb<br>
 │   ├── EDA.ipynb<br>
+│   ├── feature_engineering.ipynb<br>
+│   ├── modelling_logistic_regression.ipynb<br>
+│   ├── modelling_random_forrest.ipynb<br>
 │
 ├── script
 │   ├── EDA.py<br>
+│   ├──default_estimator_and_WoE_binning.py<br>
+│   ├──feature_engineering.py<br><br>
 │   
 ├── .gitignore<br>
 ├──  README.MD<br>
