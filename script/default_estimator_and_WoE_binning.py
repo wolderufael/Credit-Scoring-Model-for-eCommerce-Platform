@@ -180,6 +180,9 @@ class Estimator:
         y_test = test_final.loc[:,'vd']
         X_test = test_final.loc[:,train_final.columns != 'vd']
         
+        # X_train.drop(columns='Unnamed: 0 ',inplace=True)
+        # X_test.drop(columns='Unnamed: 0 ',inplace=True)
+        
         lr = LogisticRegression(penalty='l1', C=0.9, solver='liblinear')
         lr_model=lr.fit(X_train, y_train)
         
@@ -223,12 +226,6 @@ class Estimator:
         # Predicted probabilities using the best model
         train_pred = best_rf_model.predict_proba(X_train)[:, 1]
         test_pred = best_rf_model.predict_proba(X_test)[:, 1]
-        # # Print feature importances
-        # print("Feature Importances:", rf.feature_importances_)
-        
-        # # # predicted proability
-        # train_pred = rf.predict_proba(X_train)[:,1]
-        # test_pred = rf.predict_proba(X_test)[:,1]
         
         return rf,best_rf_model,train_pred,test_pred,y_train,y_test,X_test
     

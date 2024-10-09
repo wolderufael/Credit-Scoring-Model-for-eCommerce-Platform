@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 import pickle
 import datetime
@@ -18,10 +19,10 @@ sys.path.append(os.path.abspath('../models'))
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Load the pre-trained logistic re model model using pickle
-# with open('../models/logistic_regression_model-09-10-2024-00-45-34-00.pkl', 'rb') as f:
-with open('../models/random_forrest_model-09-10-2024-05-40-21-00.pkl', 'rb') as f:
+with open('../models/logistic_regression_model-09-10-2024-08-34-45-00.pkl', 'rb') as f:
     lr_model = pickle.load(f)
     
 
@@ -35,18 +36,24 @@ def preprocess_input_rf(df):
     rfms_scores=lr_processor.calculate_rfms(df)
     rfms_labeled = lr_processor.assign_good_bad_labels(rfms_scores)
     merged_data=lr_processor.merge_dataframes(df,rfms_labeled)
-    train, test=lr_processor.split_data(merged_data)
-    y_var,breaks=lr_processor.woe_num(train,'RiskLabel')
-    break_list=lr_processor.bin_catagorical_features(train)
+    # train, test=lr_processor.split_data(merged_data)
+    y_var,breaks=lr_processor.woe_num(merged_data,'RiskLabel')
+    break_list=lr_processor.bin_catagorical_features(merged_data)
     breaks.update(break_list)
     bins_adj = sc.woebin(merged_data, 'RiskLabel', breaks_list= breaks, positive = 'bad|0')
-    train_final,test_final=lr_processor.converting_into_woe_values(train,test,bins_adj)
-    info_values_df=lr_processor.calculate_information_value(train_final)
-    train_final=lr_processor.filter_columns_by_info_value(train_final,info_values_df, threshold=0.02)
-    test_final=lr_processor.filter_columns_by_info_value(test_final,info_values_df, threshold=0.02)
-    lr,lr_model,train_pred,test_pred,y_train,y_test,X_test=lr_processor.predict_risk_logistic_regressor(train_final,test_final)
+    merged_data_woe = sc.woebin_ply(merged_data, bins_adj)
+    data_final = merged_data.merge(merged_data_woe, how = 'left', left_index=True, right_index=True)
+    data_final = data_final.drop(columns = 'RiskLabel_y').rename(columns={'RiskLabel_x':'vd'})
+    categorical_columns = ['ProviderId', 'ProductId', 'ProductCategory', 'ChannelId', 'PricingStrategy']
+    data_final = data_final.drop(columns = categorical_columns)
+    # train_final,test_final=lr_processor.converting_into_woe_values(train,test,bins_adj)
+    info_values_df=lr_processor.calculate_information_value(data_final)
+    data_final=lr_processor.filter_columns_by_info_value(data_final,info_values_df, threshold=0.02)
+    # test_final=lr_processor.filter_columns_by_info_value(test_final,info_values_df, threshold=0.02)
+    X_data=data_final.loc[:,data_final.columns != 'vd']
+    # lr,lr_model,train_pred,test_pred,y_train,y_test,X_test=lr_processor.predict_risk_logistic_regressor(train_final,test_final)
 
-    return X_test
+    return X_data
 
     
 # Define logistic regression prediction endpoint for CSV file input
